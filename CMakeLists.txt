@@ -10,6 +10,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
 set(CMAKE_BUILD_TYPE Release)
 #set(CMAKE_BUILD_TYPE Debug)
 
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+
 SET(OpenCV_STATIC OFF)
 
 IF(UNIX)
@@ -47,7 +50,7 @@ file(GLOB_RECURSE bgs_include package_bgs/*.h)
 
 include_directories(${CMAKE_SOURCE_DIR})
 
-add_library(bgs SHARED ${sources} ${bgs} ${analysis})
+add_library(bgs STATIC ${sources} ${bgs} ${analysis})
 target_link_libraries(bgs ${OpenCV_LIBS})
 set_property(TARGET bgs PROPERTY PUBLIC_HEADER ${bgs_include})
 
