@@ -32,10 +32,18 @@ fi
 
 vs_cfg="Visual Studio 14 2015 Win64"
 
-rm -rf opencv/build
-mkdir -p opencv/build
-cd opencv/build
-cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DOPENCV_EXTRA_MODULES_PATH=../contrib/modules  -G "${vs_cfg}" .. &&
+if [ ! -d "opencv/build" ]; then
+	mkdir -p opencv/build
+	cd opencv/build
+	cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_BUILD_TYPE=Release -DOPENCV_EXTRA_MODULES_PATH=../contrib/modules  -G "${vs_cfg}" ..
+	rc=$?
+	if [ $rc != 0 ]; then
+		echo -e "${RED}Failed to generate build files for opencv ${opencv_ver}!${NC}"
+		exit 1
+	fi
+else
+    cd opencv/build
+fi
 Platform=x64 MSBuild.exe OpenCV.sln -t:build -p:Configuration=Release
 rc=$?
 if [ $rc != 0 ]; then
@@ -44,13 +52,30 @@ if [ $rc != 0 ]; then
 fi
 cd ../..
 
-rm -rf build
-mkdir build
-cd build
-cmake -DOpenCV_DIR=opencv/build -G "${vs_cfg}" .. &&
+if [ !-d "build" ]; then
+	mkdir -p build
+	cd build
+	cmake -DOpenCV_DIR=opencv/build -G "${vs_cfg}" ..
+	rc=$?
+	if [ $rc != 0 ]; then
+		echo -e "${RED}Failed to generate build files for bgslibrary!${NC}"
+		exit 1
+	fi
+else
+    cd build
+fi
 Platform=x64 MSBuild.exe bgs.sln -t:build -p:Configuration=Release
 rc=$?
 if [ $rc != 0 ]; then
-    echo -e "${RED}Failed to build bgs!${NC}"
+    echo -e "${RED}Failed to build bgslibrary!${NC}"
+    exit 1
+fi
+
+cd ..
+cp opencv/3rdparty/ffmpeg/opencv_ffmpeg.dll build/Release/opencv_ffmpeg320.dll &&
+cp opencv/3rdparty/ffmpeg/opencv_ffmpeg_64.dll build/Release/opencv_ffmpeg320_64.dll
+rc=$?
+if [ $rc != 0 ]; then
+    echo -e "${RED}Failed to copy opencv DLLs!${NC}"
     exit 1
 fi
